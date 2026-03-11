@@ -74,7 +74,7 @@ for line in sys.stdin:
             print("Invalid arguments")
             continue
 
-        addmon(x, y, hello)
+        addmon(name, x, y, hello)
 
     else:
         print("Invalid command")
