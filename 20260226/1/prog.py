@@ -60,14 +60,15 @@ for line in sys.stdin:
 
     elif cmd == "addmon":
 
-        if len(parts) != 4:
+        if len(parts) != 5:
             print("Invalid arguments")
             continue
 
         try:
-            x = int(parts[1])
-            y = int(parts[2])
-            hello = parts[3]
+            name = parts[1]
+            x = int(parts[2])
+            y = int(parts[3])
+            hello = parts[4]
         except:
             print("Invalid arguments")
             continue
