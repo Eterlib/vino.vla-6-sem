@@ -3,33 +3,12 @@ import zlib
 from pathlib import Path
 
 repo = Path(sys.argv[1])
-
 heads = repo / ".git" / "refs" / "heads"
 
-if len(sys.argv) == 2:
-    for branch in heads.iterdir():
-        print(branch.name)
-
-if len(sys.argv) > 2:
-
-    branch = sys.argv[2]
-
-    ref_path = repo / ".git" / "refs" / "heads" / branch
-    commit_hash = ref_path.read_text().strip()
-
-    obj_path = repo / ".git" / "objects" / commit_hash[:2] / commit_hash[2:]
-
-    data = zlib.decompress(obj_path.read_bytes())
-
-    header, _, content = data.partition(b'\x00')
-
-    print(content.decode())
 
 def show_tree(repo, tree_hash):
 
     obj_path = repo / ".git" / "objects" / tree_hash[:2] / tree_hash[2:]
-
-    import zlib
     data = zlib.decompress(obj_path.read_bytes())
 
     header, _, content = data.partition(b'\x00')
@@ -49,15 +28,45 @@ def show_tree(repo, tree_hash):
 
         i = name_end + 21
 
-parent = None
 
-for line in content.decode().split("\n"):
-    if line.startswith("tree"):
-        tree_hash = line.split()[1]
+# если указан только путь → вывод веток
+if len(sys.argv) == 2:
 
-    if line.startswith("parent"):
-        parent = line.split()[1]
+    for branch in heads.iterdir():
+        print(branch.name)
 
-print("TREE for commit", commit_hash)
 
-show_tree(repo, tree_hash)
+# если указана ветка
+elif len(sys.argv) > 2:
+
+    branch = sys.argv[2]
+
+    ref_path = repo / ".git" / "refs" / "heads" / branch
+    commit_hash = ref_path.read_text().strip()
+
+    while commit_hash:
+
+        obj_path = repo / ".git" / "objects" / commit_hash[:2] / commit_hash[2:]
+
+        data = zlib.decompress(obj_path.read_bytes())
+
+        header, _, content = data.partition(b'\x00')
+
+        text = content.decode()
+
+        tree_hash = None
+        parent = None
+
+        for line in text.split("\n"):
+
+            if line.startswith("tree"):
+                tree_hash = line.split()[1]
+
+            if line.startswith("parent") and parent is None:
+                parent = line.split()[1]
+
+        print("TREE for commit", commit_hash)
+
+        show_tree(repo, tree_hash)
+
+        commit_hash = parent
