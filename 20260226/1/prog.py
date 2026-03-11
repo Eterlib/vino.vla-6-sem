@@ -9,8 +9,8 @@ monsters = {}
 
 def encounter(x, y):
     if (x, y) in monsters:
-        hello = monsters[(x, y)]
-        print(cowsay.cowsay(hello))
+        name, hello = monsters[(x, y)]
+        print(cowsay.cowsay(hello, cow=name))
 
 
 def move(dx, dy):
@@ -25,14 +25,10 @@ def move(dx, dy):
     encounter(player_x, player_y)
 
 
-def addmon(x, y, hello):
-
+def addmon(name, x, y, hello):
     replaced = (x, y) in monsters
-
-    monsters[(x, y)] = hello
-
-    print(f"Added monster to ({x}, {y}) saying {hello}")
-
+    monsters[(x, y)] = (name, hello)
+    print(f"Added monster {name} to ({x}, {y}) saying {hello}")
     if replaced:
         print("Replaced the old monster")
 
