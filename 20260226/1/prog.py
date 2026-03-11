@@ -1,6 +1,8 @@
 import sys
 import cowsay
 
+list_cows = cowsay.list_cows()
+
 player_x = 0
 player_y = 0
 
@@ -26,6 +28,9 @@ def move(dx, dy):
 
 
 def addmon(name, x, y, hello):
+    if name not in cowsay.list_cows():
+        print("Cannot add unknown monster")
+        return
     replaced = (x, y) in monsters
     monsters[(x, y)] = (name, hello)
     print(f"Added monster {name} to ({x}, {y}) saying {hello}")
