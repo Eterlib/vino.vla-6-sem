@@ -48,3 +48,16 @@ def show_tree(repo, tree_hash):
         print(name.decode())
 
         i = name_end + 21
+
+parent = None
+
+for line in content.decode().split("\n"):
+    if line.startswith("tree"):
+        tree_hash = line.split()[1]
+
+    if line.startswith("parent"):
+        parent = line.split()[1]
+
+print("TREE for commit", commit_hash)
+
+show_tree(repo, tree_hash)
