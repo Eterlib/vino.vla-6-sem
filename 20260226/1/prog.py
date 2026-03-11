@@ -1,6 +1,8 @@
 import sys
 import cowsay
 
+list_cows = cowsay.list_cows()
+
 player_x = 0
 player_y = 0
 
@@ -9,8 +11,8 @@ monsters = {}
 
 def encounter(x, y):
     if (x, y) in monsters:
-        hello = monsters[(x, y)]
-        print(cowsay.cowsay(hello))
+        name, hello = monsters[(x, y)]
+        print(cowsay.cowsay(hello, cow=name))
 
 
 def move(dx, dy):
@@ -25,14 +27,13 @@ def move(dx, dy):
     encounter(player_x, player_y)
 
 
-def addmon(x, y, hello):
-
+def addmon(name, x, y, hello):
+    if name not in cowsay.list_cows():
+        print("Cannot add unknown monster")
+        return
     replaced = (x, y) in monsters
-
-    monsters[(x, y)] = hello
-
-    print(f"Added monster to ({x}, {y}) saying {hello}")
-
+    monsters[(x, y)] = (name, hello)
+    print(f"Added monster {name} to ({x}, {y}) saying {hello}")
     if replaced:
         print("Replaced the old monster")
 
@@ -60,19 +61,20 @@ for line in sys.stdin:
 
     elif cmd == "addmon":
 
-        if len(parts) != 4:
+        if len(parts) != 5:
             print("Invalid arguments")
             continue
 
         try:
-            x = int(parts[1])
-            y = int(parts[2])
-            hello = parts[3]
+            name = parts[1]
+            x = int(parts[2])
+            y = int(parts[3])
+            hello = parts[4]
         except:
             print("Invalid arguments")
             continue
 
-        addmon(x, y, hello)
+        addmon(name, x, y, hello)
 
     else:
         print("Invalid command")
