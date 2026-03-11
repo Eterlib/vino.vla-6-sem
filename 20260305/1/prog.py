@@ -1,19 +1,32 @@
 import sys
 import cowsay
-import shlex
+from cowsay.main import draw
 
-list_cows = cowsay.list_cows()
+JGSBAT_BODY = r"""
+    ,_                    _,
+    ) '-._  ,_    _,  _.-' (
+    )  _.-'.|\\--//|.'-._  (
+     )'   .'\/o\/o\/'.   `(
+      ) .' . \====/ . '. (
+       )  / <<    >> \  (
+        '-._/``  ``\_.-'
+  jgs     __\\''--''//__
+         (((""`  `"")))
+"""
+
+cowsay.chars["jgsbat"] = lambda text: draw(JGSBAT_BODY, text, to_console=False)
 
 player_x = 0
 player_y = 0
-
 monsters = {}
+
+print("<<< Welcome to Python-MUD 0.1 >>>")
 
 
 def encounter(x, y):
     if (x, y) in monsters:
-        name, hello, hp = monsters[(x, y)]
-        print(cowsay.cowsay(hello, cow=name))
+        name, hello = monsters[(x, y)]
+        print(cowsay.chars[name](hello))
 
 
 def move(dx, dy):
@@ -24,33 +37,22 @@ def move(dx, dy):
     encounter(player_x, player_y)
 
 
-def addmon(name, x, y, hello, hp=100):
-    if name not in list_cows:
+def addmon(name, x, y, hello):
+    if name not in cowsay.chars:
         print("Cannot add unknown monster")
         return
     replaced = (x, y) in monsters
-    monsters[(x, y)] = (name, hello, hp)
+    monsters[(x, y)] = (name, hello)
     print(f"Added monster {name} to ({x}, {y}) saying {hello}")
     if replaced:
         print("Replaced the old monster")
 
 
-print("<<< Welcome to Python-MUD 0.1 >>>")
-
 for line in sys.stdin:
-    line = line.strip()
-    if not line:
+    parts = line.strip().split()
+    if not parts:
         continue
-
-    try:
-        parts = shlex.split(line)
-    except ValueError:
-        print("Invalid command")
-        continue
-
     cmd = parts[0]
-    args = parts[1:]
-
     if cmd == "up":
         move(0, -1)
     elif cmd == "down":
@@ -60,40 +62,17 @@ for line in sys.stdin:
     elif cmd == "right":
         move(1, 0)
     elif cmd == "addmon":
-        if len(args) < 7:
+        if len(parts) != 5:
             print("Invalid arguments")
             continue
-
-        name = args[0]
-        param_dict = {}
-        i = 1
         try:
-            while i < len(args):
-                key = args[i]
-                if key == "hello":
-                    param_dict["hello"] = args[i + 1]
-                    i += 2
-                elif key == "hp":
-                    param_dict["hp"] = int(args[i + 1])
-                    i += 2
-                elif key == "coords":
-                    param_dict["x"] = int(args[i + 1])
-                    param_dict["y"] = int(args[i + 2])
-                    i += 3
-                else:
-                    raise ValueError("Unknown parameter")
-            if not all(k in param_dict for k in ("hello", "hp", "x", "y")):
-                raise ValueError("Missing parameter")
-        except:
+            name = parts[1]
+            x = int(parts[2])
+            y = int(parts[3])
+            hello = parts[4]
+        except Exception:
             print("Invalid arguments")
             continue
-
-        addmon(
-            name,
-            param_dict["x"],
-            param_dict["y"],
-            param_dict["hello"],
-            param_dict["hp"],
-        )
+        addmon(name, x, y, hello)
     else:
         print("Invalid command")
