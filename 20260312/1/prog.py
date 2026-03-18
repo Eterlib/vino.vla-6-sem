@@ -1,4 +1,4 @@
-import sys
+import cmd
 import cowsay
 from cowsay.main import draw
 
@@ -20,13 +20,11 @@ player_x = 0
 player_y = 0
 monsters = {}
 
-print("<<< Welcome to Python-MUD 0.1 >>>")
-
 
 def encounter(x, y):
     if (x, y) in monsters:
-        name, hello = monsters[(x, y)]
-        print(cowsay.chars[name](hello))
+        m = monsters[(x, y)]
+        print(cowsay.chars[m["name"]](m["hello"]))
 
 
 def move(dx, dy):
@@ -37,42 +35,61 @@ def move(dx, dy):
     encounter(player_x, player_y)
 
 
-def addmon(name, x, y, hello):
-    if name not in cowsay.chars:
-        print("Cannot add unknown monster")
-        return
-    replaced = (x, y) in monsters
-    monsters[(x, y)] = (name, hello)
-    print(f"Added monster {name} to ({x}, {y}) saying {hello}")
-    if replaced:
-        print("Replaced the old monster")
+def execute_command(line):
+    """Разбор и выполнение одной команды. Источник команды не важен."""
+    pass
 
 
-for line in sys.stdin:
-    parts = line.strip().split()
-    if not parts:
-        continue
-    cmd = parts[0]
-    if cmd == "up":
+class MudCmd(cmd.Cmd):
+    prompt = ""
+
+
+    def do_up(self, arg):
         move(0, -1)
-    elif cmd == "down":
+
+    def do_down(self, arg):
         move(0, 1)
-    elif cmd == "left":
+
+    def do_left(self, arg):
         move(-1, 0)
-    elif cmd == "right":
+
+    def do_right(self, arg):
         move(1, 0)
-    elif cmd == "addmon":
-        if len(parts) != 5:
+
+
+    def do_addmon(self, arg):
+        parts = arg.split()
+        if len(parts) != 4:
             print("Invalid arguments")
-            continue
+            return
+        name, x_s, y_s, hello = parts
+        if name not in cowsay.chars:
+            print("Cannot add unknown monster")
+            return
         try:
-            name = parts[1]
-            x = int(parts[2])
-            y = int(parts[3])
-            hello = parts[4]
-        except Exception:
+            x, y = int(x_s), int(y_s)
+        except ValueError:
             print("Invalid arguments")
-            continue
-        addmon(name, x, y, hello)
-    else:
+            return
+        replaced = (x, y) in monsters
+        monsters[(x, y)] = {"name": name, "hello": hello, "hp": 100}
+        print(f"Added monster {name} to ({x}, {y}) saying {hello}")
+        if replaced:
+            print("Replaced the old monster")
+
+    def complete_addmon(self, text, line, begidx, endidx):
+        parts = line.split()
+        if len(parts) == 1 or (len(parts) == 2 and not line.endswith(" ")):
+            return [c for c in cowsay.chars if c.startswith(text)]
+        return []
+
+
+    def do_EOF(self, arg):
+        return True
+
+    def default(self, line):
         print("Invalid command")
+
+
+print("<<< Welcome to Python-MUD 0.1 >>>")
+MudCmd().cmdloop()
