@@ -99,12 +99,38 @@ class MudCmd(cmd.Cmd):
         else:
             print(f"{name} now has {m['hp']}")
 
+    WEAPONS = {"sword": 10, "spear": 15, "axe": 20}
+
     def do_attack(self, arg):
+        parts = arg.split()
+        damage = 10
+        if parts:
+            if parts[0] == "with":
+                if len(parts) < 2:
+                    print("Unknown weapon")
+                    return
+                weapon = parts[1]
+                if weapon not in self.WEAPONS:
+                    print("Unknown weapon")
+                    return
+                damage = self.WEAPONS[weapon]
+            else:
+                print("Invalid command")
+                return
+
         pos = (player_x, player_y)
         if pos not in monsters:
             print("No monster here")
             return
-        self._do_attack_monster(pos, damage=10)
+        self._do_attack_monster(pos, damage)
+
+    def complete_attack(self, text, line, begidx, endidx):
+        parts = line.split()
+        if "with" in parts:
+            return [w for w in self.WEAPONS if w.startswith(text)]
+        if len(parts) <= 2 and not line.endswith(" "):
+            return ["with"] if "with".startswith(text) else []
+        return ["with"] if not line.endswith(" ") else []
 
     # служебные
 
