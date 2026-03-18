@@ -103,13 +103,21 @@ class MudCmd(cmd.Cmd):
 
     def do_attack(self, arg):
         parts = arg.split()
+        pos = (player_x, player_y)
         damage = 10
-        if parts:
-            if parts[0] == "with":
-                if len(parts) < 2:
+        monster_name = None
+
+        i = 0
+        if i < len(parts) and parts[i] != "with":
+            monster_name = parts[i]
+            i += 1
+        if i < len(parts):
+            if parts[i] == "with":
+                i += 1
+                if i >= len(parts):
                     print("Unknown weapon")
                     return
-                weapon = parts[1]
+                weapon = parts[i]
                 if weapon not in self.WEAPONS:
                     print("Unknown weapon")
                     return
@@ -118,9 +126,11 @@ class MudCmd(cmd.Cmd):
                 print("Invalid command")
                 return
 
-        pos = (player_x, player_y)
         if pos not in monsters:
             print("No monster here")
+            return
+        if monster_name and monsters[pos]["name"] != monster_name:
+            print(f"No {monster_name} here")
             return
         self._do_attack_monster(pos, damage)
 
@@ -128,10 +138,10 @@ class MudCmd(cmd.Cmd):
         parts = line.split()
         if "with" in parts:
             return [w for w in self.WEAPONS if w.startswith(text)]
-        if len(parts) <= 2 and not line.endswith(" "):
+        if len(parts) >= 2 or (len(parts) == 1 and line.endswith(" ")):
             return ["with"] if "with".startswith(text) else []
-        return ["with"] if not line.endswith(" ") else []
-
+        return [m for m in cowsay.chars if m.startswith(text)]
+        
     # служебные
 
     def do_EOF(self, arg):
