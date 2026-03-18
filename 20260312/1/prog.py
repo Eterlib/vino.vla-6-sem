@@ -100,12 +100,25 @@ class MudCmd(cmd.Cmd):
             print(f"{name} now has {m['hp']}")
 
     def do_attack(self, arg):
+        parts = arg.split()
         pos = (player_x, player_y)
-        if pos not in monsters:
+
+        if not parts:
             print("No monster here")
             return
+
+        monster_name = parts[0]
+
+        if pos not in monsters or monsters[pos]["name"] != monster_name:
+            print(f"No {monster_name} here")
+            return
+
         self._do_attack_monster(pos, damage=10)
 
+    def complete_attack(self, text, line, begidx, endidx):
+        all_monsters = list(cowsay.chars.keys())
+        return [m for m in all_monsters if m.startswith(text)]
+        
     # служебные
 
     def do_EOF(self, arg):
