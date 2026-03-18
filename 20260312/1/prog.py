@@ -43,6 +43,7 @@ def execute_command(line):
 class MudCmd(cmd.Cmd):
     prompt = ""
 
+    # Движение
 
     def do_up(self, arg):
         move(0, -1)
@@ -56,6 +57,7 @@ class MudCmd(cmd.Cmd):
     def do_right(self, arg):
         move(1, 0)
 
+    # addmon
 
     def do_addmon(self, arg):
         parts = arg.split()
@@ -83,6 +85,28 @@ class MudCmd(cmd.Cmd):
             return [c for c in cowsay.chars if c.startswith(text)]
         return []
 
+    # attack
+
+    def _do_attack_monster(self, pos, damage):
+        m = monsters[pos]
+        name = m["name"]
+        actual = min(damage, m["hp"])
+        m["hp"] -= actual
+        print(f"Attacked {name}, damage {actual} hp")
+        if m["hp"] == 0:
+            print(f"{name} died")
+            del monsters[pos]
+        else:
+            print(f"{name} now has {m['hp']}")
+
+    def do_attack(self, arg):
+        pos = (player_x, player_y)
+        if pos not in monsters:
+            print("No monster here")
+            return
+        self._do_attack_monster(pos, damage=10)
+
+    # служебные
 
     def do_EOF(self, arg):
         return True
