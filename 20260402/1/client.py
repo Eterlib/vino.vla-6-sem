@@ -116,6 +116,14 @@ class MudClient(cmd.Cmd):
             name = self.local_monsters[pos]
             return [name] if name.startswith(text) else []
         return []
+        
+    def do_sayall(self, arg):
+        if not arg:
+            print("Usage: sayall <message>")
+            return
+        if arg.startswith('"') and arg.endswith('"'):
+            arg = arg[1:-1]
+        self.send(f"sayall {arg}")
 
     # --- служебные ---
     def do_EOF(self, arg):

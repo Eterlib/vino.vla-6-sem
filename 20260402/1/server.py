@@ -140,6 +140,10 @@ def handle_command(username, line):
         else:
             broadcast(f"{username} attacked {name} with {weapon}, damage {actual} hp, {name} has {m['hp']} hp left")
 
+    elif cmd == "sayall":
+        message = " ".join(parts[1:])
+        broadcast(f"{username}: {message}")
+
 
 def main():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as srv:
