@@ -1,6 +1,7 @@
+"""Точка входа на сервер MOOD"""
+
 import socket
 import threading
-import cowsay
 from mood.common import setup_cowsay
 from mood.common.constants import HOST, PORT
 
@@ -12,6 +13,7 @@ clients_lock = threading.Lock()
 
 
 def broadcast(message):
+    """Рассылает сообщение всем подключённым клиентам"""
     with clients_lock:
         for username, info in list(clients.items()):
             try:
@@ -21,6 +23,7 @@ def broadcast(message):
 
 
 def send_to(username, message):
+    """Отправляет сообщение конкретному клиенту"""
     with clients_lock:
         if username in clients:
             try:
@@ -30,6 +33,7 @@ def send_to(username, message):
 
 
 def handle_command(username, line):
+    """Обрабатывает команду от клиента username"""
     parts = line.split()
     if not parts:
         return
@@ -93,6 +97,7 @@ def handle_command(username, line):
 
 
 def handle_client(conn, addr):
+    """Обрабатывает одно подключение"""
     username = None
     buf = ""
     try:
@@ -133,6 +138,7 @@ def handle_client(conn, addr):
 
 
 def main():
+    """Старт MOOD сервер"""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as srv:
         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         srv.bind((HOST, PORT))
