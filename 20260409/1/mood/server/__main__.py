@@ -212,4 +212,5 @@ def main():
             t.start()
 
 
-main()
+if __name__ == "__main__":
+    main()
