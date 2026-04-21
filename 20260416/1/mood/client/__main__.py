@@ -187,6 +187,13 @@ class MudClient(cmd.Cmd):
             arg = arg[1:-1]
         self.send(f"sayall {arg}")
 
+    def do_movemonsters(self, arg):
+        """Enable or disable wandering monsters: movemonsters on/off."""
+        if arg not in ("on", "off"):
+            print("Usage: movemonsters on/off")
+            return
+        self.send(f"movemonsters {arg}")
+
     def do_EOF(self, arg):
         """Exit the client."""
         return True

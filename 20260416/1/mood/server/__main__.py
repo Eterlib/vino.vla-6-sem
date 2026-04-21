@@ -25,6 +25,7 @@ DIRECTIONS = {
 }
 
 WANDER_INTERVAL = 30
+wander_enabled = True
 
 
 def broadcast(message):
@@ -67,6 +68,8 @@ def wander_monsters():
     """Move a random monster one cell every WANDER_INTERVAL seconds."""
     while True:
         time.sleep(WANDER_INTERVAL)
+        if not wander_enabled:
+            continue
         with clients_lock:
             if not monsters:
                 continue
@@ -151,6 +154,15 @@ def handle_command(username, line):
     elif cmd == "sayall":
         message = " ".join(parts[1:])
         broadcast(f"{username}: {message}")
+
+    elif cmd == "movemonsters":
+        global wander_enabled
+        if parts[1] == "on":
+            wander_enabled = True
+            send_to(username, "Moving monsters: on")
+        elif parts[1] == "off":
+            wander_enabled = False
+            send_to(username, "Moving monsters: off")
 
 
 def handle_client(conn, addr):
