@@ -1,9 +1,10 @@
-"""Точка входа клиента на MOOD"""
+"""MOOD client entry point."""
 
 import cmd
 import sys
 import socket
 import threading
+import time
 import cowsay
 from mood.common import setup_cowsay
 from mood.common.constants import HOST, PORT, WEAPONS
@@ -12,7 +13,7 @@ setup_cowsay()
 
 
 def readline_get_line_buffer():
-    """Получить текущий входной буфер строки чтения"""
+    """Get current readline input buffer."""
     try:
         import readline
         return readline.get_line_buffer()
@@ -21,7 +22,7 @@ def readline_get_line_buffer():
 
 
 def handle_server_message(line, client):
-    """Обрабатывать и отображать сообщение от сервера"""
+    """Handle and display a message from the server."""
     parts = line.split()
     if not parts:
         return
@@ -51,11 +52,16 @@ def handle_server_message(line, client):
     else:
         print(f"\r{line}")
 
-    print(f"{client.prompt}{readline_get_line_buffer()}", end="", flush=True)
+    if client.interactive:
+        print(
+            f"{client.prompt}{readline_get_line_buffer()}",
+            end="",
+            flush=True,
+        )
 
 
 def receive_messages(sock, client):
-    """Получать сообщения с сервера в отдельном потоке"""
+    """Receive messages from server in a separate thread."""
     buf = ""
     try:
         while True:
@@ -71,41 +77,42 @@ def receive_messages(sock, client):
 
 
 class MudClient(cmd.Cmd):
-    """Интерактивный клиент MOOD"""
+    """MOOD interactive client."""
 
     prompt = ""
 
-    def __init__(self, sock, username):
-        """Инициализация клиента с помощью сокета и имени пользователя"""
+    def __init__(self, sock, username, interactive=True):
+        """Initialize the client with a socket and username."""
         super().__init__()
         self.sock = sock
         self.username = username
         self.player_x = 0
         self.player_y = 0
         self.local_monsters = {}
+        self.interactive = interactive
 
     def send(self, line):
-        """Отправьте команду на сервер"""
+        """Send a command to the server."""
         self.sock.sendall((line + "\n").encode())
 
     def do_up(self, arg):
-        """Двигаться вверх"""
+        """Move up."""
         self.send("move 0 -1")
 
     def do_down(self, arg):
-        """Двигаться вниз"""
+        """Move down."""
         self.send("move 0 1")
 
     def do_left(self, arg):
-        """Двигаться налево"""
+        """Move left."""
         self.send("move -1 0")
 
     def do_right(self, arg):
-        """Двигаться направо"""
+        """Move right."""
         self.send("move 1 0")
 
     def do_addmon(self, arg):
-        """Add a monster: addmon <name> <x> <y> <hello>"""
+        """Add a monster: addmon <name> <x> <y> <hello>."""
         parts = arg.split()
         if len(parts) != 4:
             print("Invalid arguments")
@@ -122,14 +129,14 @@ class MudClient(cmd.Cmd):
         self.send(f"addmon {name} {x} {y} {hello} 100")
 
     def complete_addmon(self, text, line, begidx, endidx):
-        """Полное имя монстра для addmon"""
+        """Complete monster name for addmon."""
         parts = line.split()
         if len(parts) == 1 or (len(parts) == 2 and not line.endswith(" ")):
             return [c for c in cowsay.CHARS if c.startswith(text)]
         return []
 
     def do_attack(self, arg):
-        """Attack a monster: attack <name> [with <weapon>]"""
+        """Attack a monster: attack <name> [with <weapon>]."""
         parts = arg.split()
         damage = WEAPONS["sword"]
         weapon = "sword"
@@ -157,7 +164,7 @@ class MudClient(cmd.Cmd):
         self.send(f"attack {monster_name} {damage} {weapon}")
 
     def complete_attack(self, text, line, begidx, endidx):
-        """Полное имя монстра или оружие для атаки"""
+        """Complete monster name or weapon for attack."""
         parts = line.split()
         if "with" in parts:
             return [w for w in WEAPONS if w.startswith(text)]
@@ -172,7 +179,7 @@ class MudClient(cmd.Cmd):
         return []
 
     def do_sayall(self, arg):
-        """Отправьте сообщение всем игрокам: sayall <message>"""
+        """Send a message to all players: sayall <message>."""
         if not arg:
             print("Usage: sayall <message>")
             return
@@ -181,21 +188,50 @@ class MudClient(cmd.Cmd):
         self.send(f"sayall {arg}")
 
     def do_EOF(self, arg):
-        """Выход из клиента"""
+        """Exit the client."""
         return True
 
     def default(self, line):
-        """Обрабатывать неизвестные команды"""
+        """Handle unknown commands."""
         print("Invalid command")
 
 
+def run_from_file(client, filename):
+    """Execute commands from a .mood script file.
+
+    :param client: The MudClient instance.
+    :param filename: Path to the .mood script file.
+    """
+    with open(filename) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            print(f"> {line}")
+            client.onecmd(line)
+            time.sleep(1)
+
+
 def main():
-    """Старт MOOD клиент"""
-    if len(sys.argv) < 2:
-        print("Usage: python -m mood.client <username>")
+    """Start the MOOD client."""
+    args = sys.argv[1:]
+
+    # Разбираем аргументы: username [--file <filename>]
+    if not args:
+        print("Usage: python -m mood.client <username> [--file <filename>]")
         sys.exit(1)
 
-    username = sys.argv[1]
+    username = args[0]
+    filename = None
+
+    if "--file" in args:
+        idx = args.index("--file")
+        if idx + 1 >= len(args):
+            print("Error: --file requires a filename")
+            sys.exit(1)
+        filename = args[idx + 1]
+
+    interactive = filename is None
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect((HOST, PORT))
@@ -213,14 +249,18 @@ def main():
         print("<<< Welcome to Python-MUD 0.1 >>>")
         print(line.split(" ", 1)[1] if " " in line else line)
 
-        client = MudClient(sock, username)
+        client = MudClient(sock, username, interactive=interactive)
 
         t = threading.Thread(
             target=receive_messages, args=(sock, client), daemon=True
         )
         t.start()
 
-        client.cmdloop()
+        if filename:
+            run_from_file(client, filename)
+        else:
+            client.cmdloop()
 
 
-main()
+if __name__ == "__main__":
+    main()
