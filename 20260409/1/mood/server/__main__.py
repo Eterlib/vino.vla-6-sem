@@ -1,7 +1,9 @@
 """Точка входа на сервер MOOD"""
 
+import random
 import socket
 import threading
+import time
 from mood.common import setup_cowsay
 from mood.common.constants import HOST, PORT
 
@@ -11,6 +13,14 @@ monsters = {}
 clients = {}
 clients_lock = threading.Lock()
 
+DIRECTIONS = {
+    "right": (1, 0),
+    "left": (-1, 0),
+    "up": (0, -1),
+    "down": (0, 1),
+}
+
+WANDER_INTERVAL = 30
 
 def broadcast(message):
     """Рассылает сообщение всем подключённым клиентам"""
