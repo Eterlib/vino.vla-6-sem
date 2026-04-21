@@ -1,4 +1,8 @@
-"""Точка входа на сервер MOOD"""
+"""MOOD server entry point.
+
+This module implements the MOOD game server with support
+for multiple clients, wandering monsters, and chat.
+"""
 
 import random
 import socket
@@ -22,8 +26,9 @@ DIRECTIONS = {
 
 WANDER_INTERVAL = 30
 
+
 def broadcast(message):
-    """Рассылает сообщение всем подключённым клиентам"""
+    """Send a message to all connected clients."""
     with clients_lock:
         for username, info in list(clients.items()):
             try:
@@ -33,7 +38,7 @@ def broadcast(message):
 
 
 def send_to(username, message):
-    """Отправляет сообщение конкретному клиенту"""
+    """Send a message to a specific client."""
     with clients_lock:
         if username in clients:
             try:
@@ -42,8 +47,48 @@ def send_to(username, message):
                 pass
 
 
+def encounter_at(pos):
+    """Notify all players at given position about a monster encounter."""
+    if pos not in monsters:
+        return
+    m = monsters[pos]
+    with clients_lock:
+        for username, info in list(clients.items()):
+            if (info["x"], info["y"]) == pos:
+                try:
+                    info["conn"].sendall(
+                        f"encounter {m['name']} {m['hello']}\n".encode()
+                    )
+                except Exception:
+                    pass
+
+
+def wander_monsters():
+    """Move a random monster one cell every WANDER_INTERVAL seconds."""
+    while True:
+        time.sleep(WANDER_INTERVAL)
+        with clients_lock:
+            if not monsters:
+                continue
+            while True:
+                pos = random.choice(list(monsters.keys()))
+                direction = random.choice(list(DIRECTIONS.keys()))
+                dx, dy = DIRECTIONS[direction]
+                new_x = (pos[0] + dx) % 10
+                new_y = (pos[1] + dy) % 10
+                new_pos = (new_x, new_y)
+                if new_pos not in monsters:
+                    break
+            monster = monsters.pop(pos)
+            monsters[new_pos] = monster
+            name = monster["name"]
+
+        broadcast(f"{name} moved one cell {direction}")
+        encounter_at(new_pos)
+
+
 def handle_command(username, line):
-    """Обрабатывает команду от клиента username"""
+    """Handle a command received from a client."""
     parts = line.split()
     if not parts:
         return
@@ -73,7 +118,9 @@ def handle_command(username, line):
             send_to(username, f"added {name} {x} {y} replaced")
         else:
             send_to(username, f"added {name} {x} {y}")
-        broadcast(f"{username} added monster {name} at ({x}, {y}) with {hp} hp")
+        broadcast(
+            f"{username} added monster {name} at ({x}, {y}) with {hp} hp"
+        )
 
     elif cmd == "attack":
         name = parts[1]
@@ -107,7 +154,7 @@ def handle_command(username, line):
 
 
 def handle_client(conn, addr):
-    """Обрабатывает одно подключение"""
+    """Handle a single client connection lifecycle."""
     username = None
     buf = ""
     try:
@@ -148,7 +195,10 @@ def handle_client(conn, addr):
 
 
 def main():
-    """Старт MOOD сервер"""
+    """Start the MOOD server and wandering monster thread."""
+    wander_thread = threading.Thread(target=wander_monsters, daemon=True)
+    wander_thread.start()
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as srv:
         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         srv.bind((HOST, PORT))
