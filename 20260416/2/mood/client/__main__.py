@@ -194,6 +194,13 @@ class MudClient(cmd.Cmd):
             return
         self.send(f"movemonsters {arg}")
 
+    def do_locale(self, arg):
+        """Set locale: locale <locale_name>."""
+        if not arg:
+            print("Usage: locale <locale_name>")
+            return
+        self.send(f"locale {arg}")
+
     def do_EOF(self, arg):
         """Exit the client."""
         return True

@@ -1,13 +1,14 @@
 """MOOD server entry point.
 
 This module implements the MOOD game server with support
-for multiple clients, wandering monsters, and chat.
+for multiple clients, wandering monsters, chat and localization.
 """
 
 import random
 import socket
 import threading
 import time
+import gettext
 from mood.common import setup_cowsay
 from mood.common.constants import HOST, PORT
 
@@ -25,27 +26,55 @@ DIRECTIONS = {
 }
 
 WANDER_INTERVAL = 30
+
 wander_enabled = True
 
 
-def broadcast(message):
-    """Send a message to all connected clients."""
-    with clients_lock:
-        for username, info in list(clients.items()):
-            try:
-                info["conn"].sendall((message + "\n").encode())
-            except Exception:
-                pass
+def get_translation(locale):
+    """Get translation object for given locale."""
+    try:
+        return gettext.translation(
+            'messages',
+            localedir='mood/server/po',
+            languages=[locale],
+        )
+    except FileNotFoundError:
+        return gettext.NullTranslations()
 
 
-def send_to(username, message):
-    """Send a message to a specific client."""
+def send_raw(username, message):
+    """Send raw string message to a specific client."""
     with clients_lock:
         if username in clients:
             try:
                 clients[username]["conn"].sendall((message + "\n").encode())
             except Exception:
                 pass
+
+
+def broadcast_raw(message_by_locale):
+    """Send message to all clients using per-client locale."""
+    with clients_lock:
+        for username, info in list(clients.items()):
+            try:
+                t = get_translation(info.get("locale", "en"))
+                msg = message_by_locale(t.gettext, t.ngettext)
+                info["conn"].sendall((msg + "\n").encode())
+            except Exception:
+                pass
+
+
+def send_localized(username, message_by_locale):
+    """Send localized message to a specific client."""
+    with clients_lock:
+        if username not in clients:
+            return
+        try:
+            t = get_translation(clients[username].get("locale", "en"))
+            msg = message_by_locale(t.gettext, t.ngettext)
+            clients[username]["conn"].sendall((msg + "\n").encode())
+        except Exception:
+            pass
 
 
 def encounter_at(pos):
@@ -86,12 +115,13 @@ def wander_monsters():
             monsters[new_pos] = monster
             name = monster["name"]
 
-        broadcast(f"{name} moved one cell {direction}")
+        broadcast_raw(lambda g, ng: f"{name} moved one cell {direction}")
         encounter_at(new_pos)
 
 
 def handle_command(username, line):
     """Handle a command received from a client."""
+    global wander_enabled
     parts = line.split()
     if not parts:
         return
@@ -105,10 +135,10 @@ def handle_command(username, line):
             clients[username]["x"] = x
             clients[username]["y"] = y
         pos = (x, y)
-        send_to(username, f"moved {x} {y}")
+        send_raw(username, f"moved {x} {y}")
         if pos in monsters:
             m = monsters[pos]
-            send_to(username, f"encounter {m['name']} {m['hello']}")
+            send_raw(username, f"encounter {m['name']} {m['hello']}")
 
     elif cmd == "addmon":
         name = parts[1]
@@ -118,12 +148,15 @@ def handle_command(username, line):
         replaced = (x, y) in monsters
         monsters[(x, y)] = {"name": name, "hello": hello, "hp": hp}
         if replaced:
-            send_to(username, f"added {name} {x} {y} replaced")
+            send_raw(username, f"added {name} {x} {y} replaced")
         else:
-            send_to(username, f"added {name} {x} {y}")
-        broadcast(
-            f"{username} added monster {name} at ({x}, {y}) with {hp} hp"
-        )
+            send_raw(username, f"added {name} {x} {y}")
+        broadcast_raw(lambda g, ng: (
+            "{} ".format(username) +
+            g("added monster {} at ({}, {}) with {} {}.").format(
+                name, x, y, hp, ng("point", "points", hp)
+            )
+        ))
 
     elif cmd == "attack":
         name = parts[1]
@@ -134,35 +167,49 @@ def handle_command(username, line):
             y = clients[username]["y"]
         pos = (x, y)
         if pos not in monsters or monsters[pos]["name"] != name:
-            send_to(username, f"no_monster {name}")
+            send_raw(username, f"no_monster {name}")
             return
         m = monsters[pos]
         actual = min(damage, m["hp"])
         m["hp"] -= actual
         if m["hp"] == 0:
             del monsters[pos]
-            broadcast(
-                f"{username} attacked {name} with {weapon}, "
-                f"damage {actual} hp, {name} died"
-            )
+            broadcast_raw(lambda g, ng: (
+                "{} ".format(username) +
+                g("attacked {} with {}, damage {} {}, {} died.").format(
+                    name, weapon, actual, ng("point", "points", actual), name
+                )
+            ))
         else:
-            broadcast(
-                f"{username} attacked {name} with {weapon}, "
-                f"damage {actual} hp, {name} has {m['hp']} hp left"
-            )
+            hp_left = m["hp"]
+            broadcast_raw(lambda g, ng: (
+                "{} ".format(username) +
+                g("attacked {} with {}, damage {} {}, {} has {} {} left.").format(
+                    name, weapon, actual, ng("point", "points", actual),
+                    name, hp_left, ng("point", "points", hp_left)
+                )
+            ))
 
     elif cmd == "sayall":
         message = " ".join(parts[1:])
-        broadcast(f"{username}: {message}")
+        broadcast_raw(lambda g, ng: f"{username}: {message}")
 
     elif cmd == "movemonsters":
-        global wander_enabled
         if parts[1] == "on":
             wander_enabled = True
-            send_to(username, "Moving monsters: on")
+            send_raw(username, "Moving monsters: on")
         elif parts[1] == "off":
             wander_enabled = False
-            send_to(username, "Moving monsters: off")
+            send_raw(username, "Moving monsters: off")
+
+    elif cmd == "locale":
+        locale = parts[1]
+        with clients_lock:
+            clients[username]["locale"] = locale
+        send_localized(
+            username,
+            lambda g, ng: g("Set up locale: {}").format(locale)
+        )
 
 
 def handle_client(conn, addr):
@@ -183,10 +230,10 @@ def handle_client(conn, addr):
                 conn.sendall("error name_taken\n".encode())
                 conn.close()
                 return
-            clients[username] = {"conn": conn, "x": 0, "y": 0}
+            clients[username] = {"conn": conn, "x": 0, "y": 0, "locale": "en"}
 
         conn.sendall(f"ok Welcome, {username}!\n".encode())
-        broadcast(f"{username} joined the game")
+        broadcast_raw(lambda g, ng: g("{} joined the game.").format(username))
 
         while True:
             data = conn.recv(1024).decode()
@@ -202,7 +249,7 @@ def handle_client(conn, addr):
             with clients_lock:
                 if username in clients:
                     del clients[username]
-            broadcast(f"{username} left the game")
+            broadcast_raw(lambda g, ng: g("{} left the game.").format(username))
         conn.close()
 
 
