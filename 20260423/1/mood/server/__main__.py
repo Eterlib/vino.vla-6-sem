@@ -253,22 +253,27 @@ def handle_client(conn, addr):
         conn.close()
 
 
-def main():
-    """Start the MOOD server and wandering monster thread."""
+def run_server(host=HOST, port=PORT):
+    """Start the MOOD server on given host and port."""
     wander_thread = threading.Thread(target=wander_monsters, daemon=True)
     wander_thread.start()
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as srv:
         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        srv.bind((HOST, PORT))
+        srv.bind((host, port))
         srv.listen(10)
-        print(f"Server listening on {HOST}:{PORT}")
+        print(f"Server listening on {host}:{port}")
         while True:
             conn, addr = srv.accept()
             t = threading.Thread(
                 target=handle_client, args=(conn, addr), daemon=True
             )
             t.start()
+
+
+def main():
+    """Start the MOOD server and wandering monster thread."""
+    run_server()
 
 
 if __name__ == "__main__":
