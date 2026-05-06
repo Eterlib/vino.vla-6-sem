@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-04-21 20:00+0300\n"
+"POT-Creation-Date: 2026-05-06 12:04+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,37 +17,37 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: mood/server/messages.py:7
+#: mood/server/messages.py:6
 #, python-brace-format
 msgid "{} joined the game."
 msgstr ""
 
-#: mood/server/messages.py:8
+#: mood/server/messages.py:7
 #, python-brace-format
 msgid "{} left the game."
 msgstr ""
 
-#: mood/server/messages.py:9
+#: mood/server/messages.py:8
 #, python-brace-format
 msgid "Set up locale: {}"
 msgstr ""
 
-#: mood/server/messages.py:10
+#: mood/server/messages.py:9
 #, python-brace-format
 msgid "added monster {} at ({}, {}) with {} {}."
 msgstr ""
 
-#: mood/server/messages.py:11
+#: mood/server/messages.py:10
 #, python-brace-format
 msgid "attacked {} with {}, damage {} {}, {} died."
 msgstr ""
 
-#: mood/server/messages.py:12
+#: mood/server/messages.py:11
 #, python-brace-format
 msgid "attacked {} with {}, damage {} {}, {} has {} {} left."
 msgstr ""
 
-#: mood/server/messages.py:13
+#: mood/server/messages.py:12
 msgid "point"
 msgid_plural "points"
 msgstr[0] ""

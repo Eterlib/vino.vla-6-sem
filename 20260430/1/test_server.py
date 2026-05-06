@@ -92,3 +92,16 @@ def test_attack(conn):
     resp = conn.send_recv("attack cow 10 sword")
     assert "attacked" in resp
     assert "cow" in resp
+
+def test_attack_russian(conn):
+    """Test attack response is localized in Russian."""
+    conn.send_recv("locale ru_RU")
+    conn.send_recv("addmon cow 1 0 hello 100")
+    conn.recv_line()
+
+    conn.send_recv("move 1 0")
+    conn.recv_line()
+
+    resp = conn.send_recv("attack cow 10 sword")
+    assert "атаковал" in resp
+    assert "очко" in resp or "очка" in resp or "очков" in resp
