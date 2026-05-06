@@ -36,17 +36,23 @@
 <span id="server-module"></span><h1>Server module<a class="headerlink" href="#module-mood.server.__main__" title="Link to this heading">¶</a></h1>
 <p>MOOD server entry point.</p>
 <p>This module implements the MOOD game server with support
-for multiple clients, wandering monsters, and chat.</p>
+for multiple clients, wandering monsters, chat and localization.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="mood.server.__main__.broadcast">
-<span class="sig-prename descclassname"><span class="pre">mood.server.__main__.</span></span><span class="sig-name descname"><span class="pre">broadcast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mood.server.__main__.broadcast" title="Link to this definition">¶</a></dt>
-<dd><p>Send a message to all connected clients.</p>
+<dt class="sig sig-object py" id="mood.server.__main__.broadcast_raw">
+<span class="sig-prename descclassname"><span class="pre">mood.server.__main__.</span></span><span class="sig-name descname"><span class="pre">broadcast_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message_by_locale</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mood.server.__main__.broadcast_raw" title="Link to this definition">¶</a></dt>
+<dd><p>Send message to all clients using per-client locale.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="mood.server.__main__.encounter_at">
 <span class="sig-prename descclassname"><span class="pre">mood.server.__main__.</span></span><span class="sig-name descname"><span class="pre">encounter_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mood.server.__main__.encounter_at" title="Link to this definition">¶</a></dt>
 <dd><p>Notify all players at given position about a monster encounter.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mood.server.__main__.get_translation">
+<span class="sig-prename descclassname"><span class="pre">mood.server.__main__.</span></span><span class="sig-name descname"><span class="pre">get_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">locale</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mood.server.__main__.get_translation" title="Link to this definition">¶</a></dt>
+<dd><p>Get translation object for given locale.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -68,9 +74,21 @@ for multiple clients, wandering monsters, and chat.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="mood.server.__main__.send_to">
-<span class="sig-prename descclassname"><span class="pre">mood.server.__main__.</span></span><span class="sig-name descname"><span class="pre">send_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mood.server.__main__.send_to" title="Link to this definition">¶</a></dt>
-<dd><p>Send a message to a specific client.</p>
+<dt class="sig sig-object py" id="mood.server.__main__.run_server">
+<span class="sig-prename descclassname"><span class="pre">mood.server.__main__.</span></span><span class="sig-name descname"><span class="pre">run_server</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'127.0.0.1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5555</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mood.server.__main__.run_server" title="Link to this definition">¶</a></dt>
+<dd><p>Start the MOOD server on given host and port.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mood.server.__main__.send_localized">
+<span class="sig-prename descclassname"><span class="pre">mood.server.__main__.</span></span><span class="sig-name descname"><span class="pre">send_localized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message_by_locale</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mood.server.__main__.send_localized" title="Link to this definition">¶</a></dt>
+<dd><p>Send localized message to a specific client.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mood.server.__main__.send_raw">
+<span class="sig-prename descclassname"><span class="pre">mood.server.__main__.</span></span><span class="sig-name descname"><span class="pre">send_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mood.server.__main__.send_raw" title="Link to this definition">¶</a></dt>
+<dd><p>Send raw string message to a specific client.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -110,12 +128,15 @@ for multiple clients, wandering monsters, and chat.</p>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Server module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#mood.server.__main__.broadcast"><code class="docutils literal notranslate"><span class="pre">broadcast()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mood.server.__main__.broadcast_raw"><code class="docutils literal notranslate"><span class="pre">broadcast_raw()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mood.server.__main__.encounter_at"><code class="docutils literal notranslate"><span class="pre">encounter_at()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mood.server.__main__.get_translation"><code class="docutils literal notranslate"><span class="pre">get_translation()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mood.server.__main__.handle_client"><code class="docutils literal notranslate"><span class="pre">handle_client()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mood.server.__main__.handle_command"><code class="docutils literal notranslate"><span class="pre">handle_command()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mood.server.__main__.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#mood.server.__main__.send_to"><code class="docutils literal notranslate"><span class="pre">send_to()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mood.server.__main__.run_server"><code class="docutils literal notranslate"><span class="pre">run_server()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mood.server.__main__.send_localized"><code class="docutils literal notranslate"><span class="pre">send_localized()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mood.server.__main__.send_raw"><code class="docutils literal notranslate"><span class="pre">send_raw()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mood.server.__main__.wander_monsters"><code class="docutils literal notranslate"><span class="pre">wander_monsters()</span></code></a></li>
 </ul>
 </li>
