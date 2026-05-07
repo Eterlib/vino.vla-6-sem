@@ -1,0 +1,2 @@
+include mood/server/po/ru_RU/LC_MESSAGES/messages.po
+exclude mood/server/po/ru_RU/LC_MESSAGES/messages.mo

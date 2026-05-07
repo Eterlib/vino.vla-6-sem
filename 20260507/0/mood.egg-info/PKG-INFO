@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: mood
+Version: 0.1
+Summary: Multiplayer Online Object Dungeon
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: cowsay
+
+# MOOD - Multiplayer Online Object Dungeon
