@@ -33,12 +33,14 @@ wander_enabled = True
 def get_translation(locale):
     """Get translation object for given locale."""
     try:
+        from importlib.resources import files
+        localedir = str(files('mood.server').joinpath('po'))
         return gettext.translation(
             'messages',
-            localedir='mood/server/po',
+            localedir=localedir,
             languages=[locale],
         )
-    except FileNotFoundError:
+    except (FileNotFoundError, ModuleNotFoundError):
         return gettext.NullTranslations()
 
 
