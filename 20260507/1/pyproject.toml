@@ -1,0 +1,31 @@
+[project]
+name = "mood"
+version = "0.1"
+description = "Multiplayer Online Object Dungeon"
+readme = "README.md"
+requires-python = ">=3.12"
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
+
+[dependency-groups]
+devel = ["sphinx", "build", "doit", "babel", "flake8", "pydocstyle",
+         "setuptools", "pytest"]
+
+[project.scripts]
+mood-server = "mood.server.__main__:main"
+mood-client = "mood.client.__main__:main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-dir]
+mood = "mood"
+
+[tool.setuptools.package-data]
+mood = [
+    "server/po/*/LC_MESSAGES/*.mo",
+    "docs/**/*",
+]
