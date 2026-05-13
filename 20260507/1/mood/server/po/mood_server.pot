@@ -1,0 +1,55 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-05-06 12:04+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: mood/server/messages.py:6
+#, python-brace-format
+msgid "{} joined the game."
+msgstr ""
+
+#: mood/server/messages.py:7
+#, python-brace-format
+msgid "{} left the game."
+msgstr ""
+
+#: mood/server/messages.py:8
+#, python-brace-format
+msgid "Set up locale: {}"
+msgstr ""
+
+#: mood/server/messages.py:9
+#, python-brace-format
+msgid "added monster {} at ({}, {}) with {} {}."
+msgstr ""
+
+#: mood/server/messages.py:10
+#, python-brace-format
+msgid "attacked {} with {}, damage {} {}, {} died."
+msgstr ""
+
+#: mood/server/messages.py:11
+#, python-brace-format
+msgid "attacked {} with {}, damage {} {}, {} has {} {} left."
+msgstr ""
+
+#: mood/server/messages.py:12
+msgid "point"
+msgid_plural "points"
+msgstr[0] ""
+msgstr[1] ""
+
