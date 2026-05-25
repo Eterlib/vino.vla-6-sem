@@ -96,17 +96,17 @@ def task_test():
 
 def task_setup():
     """Install wheel into three clean pipenv environments."""
-    wheel = "dist/mood-0.1-py3-none-any.whl"
+    import os
+    wheel = os.path.abspath("dist/mood-0.1-py3-none-any.whl")
     return {
         "actions": [
             "rm -rf /tmp/mood_srv /tmp/mood_cl1 /tmp/mood_cl2",
-            "mkdir /tmp/mood_srv && cd /tmp/mood_srv && pipenv install %(dependencies)s",
-            "mkdir /tmp/mood_cl1 && cd /tmp/mood_cl1 && pipenv install %(dependencies)s",
-            "mkdir /tmp/mood_cl2 && cd /tmp/mood_cl2 && pipenv install %(dependencies)s",
+            f"mkdir /tmp/mood_srv && cd /tmp/mood_srv && pipenv install {wheel}",
+            f"mkdir /tmp/mood_cl1 && cd /tmp/mood_cl1 && pipenv install {wheel}",
+            f"mkdir /tmp/mood_cl2 && cd /tmp/mood_cl2 && pipenv install {wheel}",
             'echo "Терминал 1: cd /tmp/mood_srv && pipenv run mood-server"',
             'echo "Терминал 2: cd /tmp/mood_cl1 && pipenv run mood-client alice"',
             'echo "Терминал 3: cd /tmp/mood_cl2 && pipenv run mood-client bob"',
         ],
-        "file_dep": [wheel],
         "task_dep": ["wheel"],
     }
